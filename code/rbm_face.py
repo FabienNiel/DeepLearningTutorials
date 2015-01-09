@@ -22,6 +22,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from utils import tile_raster_images
 from logistic_sgd import load_data
 
+from load_faces import load_faces
 
 # start-snippet-1
 class RBM(object):
@@ -151,30 +152,16 @@ class RBM(object):
         # the visibles
         pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
 
+
+	##################################################################
+	## Sparsity: #####################################################
+	##################################################################
 	rank_0 = ((h1_mean.argsort(axis=0)).argsort(axis=0).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[0].astype(theano.config.floatX)
 
 	rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
 
-	h1_mean = (1.-0.9)*(rank_0**((1./0.999)-1.))+0.9*(rank_1**((1./0.999)-1.))
-	# Rank:
-	#array = T.flatten(h1_mean)
-	#temp = array.argsort()
-	#print (temp[:-4])
-	#ranks = numpy.empty(576, float)
-	#ranks[temp] = T.arange(576)
+	h1_mean = (1.-0.9)*(rank_0**((1./0.99)-1.))+0.9*(rank_1**((1./0.99)-1.))
 
-	# Sigmoid:
-	#ranks = ranks/(len(ranks)-1)
-	#a=100
-	#c=0.999
-	#temp = a*(ranks - c)
-	#log_rnk = T.nnet.sigmoid()
-
-	# Weights:
-	#phi = 0.90
-	#h1_mean = phi*numpy.reshape(log_rnk,(len(h1_mean[:,1]),len(h1_mean[1,:]))) + (1-phi)*h1_mean
-	#pre_sigmoid_h1 = ln(h1_mean/(1-h1_mean))
-	##################################################################
 
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype
@@ -383,7 +370,7 @@ class RBM(object):
 
 
 def test_rbm(learning_rate=0.1, training_epochs=15,
-             dataset='mnist.pkl.gz', batch_size=100,
+             dataset='mnist.pkl.gz', batch_size=20,
              n_chains=20, n_samples=10, output_folder='rbm_plots',
              n_hidden=500):
     """
@@ -404,7 +391,10 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     :param n_samples: number of samples to plot for each chain
 
     """
-    datasets = load_data(dataset)
+    #datasets = load_data(dataset)
+    dataset = '/home/thibaud/Research/DeepLearningTutorials/data/24x24_10_Europe'
+    datasets = load_faces(dataset)
+    print datasets
 
     train_set_x, train_set_y = datasets[0]
     test_set_x, test_set_y = datasets[2]

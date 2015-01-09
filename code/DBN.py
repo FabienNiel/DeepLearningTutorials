@@ -13,7 +13,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
 from rbm import RBM
-
+from load_faces import load_faces
 
 # start-snippet-1
 class DBN(object):
@@ -276,7 +276,7 @@ class DBN(object):
         return train_fn, valid_score, test_score
 
 
-def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
+def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
              pretrain_lr=0.01, k=1, training_epochs=1000,
              dataset='mnist.pkl.gz', batch_size=10):
     """
@@ -300,7 +300,9 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     :param batch_size: the size of a minibatch
     """
 
-    datasets = load_data(dataset)
+    #datasets = load_data(dataset)
+    dataset = '/home/thibaud/Research/DeepLearningTutorials/data/24x24_10_Europe'
+    datasets = load_faces(dataset)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
@@ -313,8 +315,8 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     numpy_rng = numpy.random.RandomState(123)
     print '... building the model'
     # construct the Deep Belief Network
-    dbn = DBN(numpy_rng=numpy_rng, n_ins=28 * 28,
-              hidden_layers_sizes=[1000, 1000, 1000],
+    dbn = DBN(numpy_rng=numpy_rng, n_ins=24 * 24,
+              hidden_layers_sizes=[10000, 1000, 2000],
               n_outs=10)
 
     # start-snippet-2
