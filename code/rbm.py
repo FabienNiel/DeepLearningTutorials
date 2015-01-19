@@ -151,30 +151,16 @@ class RBM(object):
         # the visibles
         pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
 
-	rank_0 = ((h1_mean.argsort(axis=0)).argsort(axis=0).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[0].astype(theano.config.floatX)
+        ## DAN ADDED:#########################
+        rank_0 = ((h1_mean.argsort(axis=0)).argsort(axis=0).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[0].astype(theano.config.floatX)
 
-	rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
+        rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
 
-	h1_mean = (1.-0.9)*(rank_0**((1./0.999)-1.))+0.9*(rank_1**((1./0.999)-1.))
-	# Rank:
-	#array = T.flatten(h1_mean)
-	#temp = array.argsort()
-	#print (temp[:-4])
-	#ranks = numpy.empty(576, float)
-	#ranks[temp] = T.arange(576)
+        h1_mean = (1.-0.5)*(rank_0**((1./0.03)-1.))+0.5*(rank_1**((1./0.03)-1.))
 
-	# Sigmoid:
-	#ranks = ranks/(len(ranks)-1)
-	#a=100
-	#c=0.999
-	#temp = a*(ranks - c)
-	#log_rnk = T.nnet.sigmoid()
-
-	# Weights:
-	#phi = 0.90
-	#h1_mean = phi*numpy.reshape(log_rnk,(len(h1_mean[:,1]),len(h1_mean[1,:]))) + (1-phi)*h1_mean
-	#pre_sigmoid_h1 = ln(h1_mean/(1-h1_mean))
-	##################################################################
+        #pre_sigmoid_h1_bin = T.log(h1_mean) - T.log(1. - h1_mean)
+        #pre_sigmoid_h1 = pre_sigmoid_h1_bin 
+        #######################################
 
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype
@@ -291,6 +277,18 @@ class RBM(object):
             self.free_energy(chain_end))
         # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
+
+        ## DAN ADDED:#########################
+        #pre_sigmoid_h1_bin = T.log(ph_mean) - T.log(1. - ph_mean)
+        # get_gweights_up
+        #phi = 0.2
+        #gparams_lat_bias = theano.clone(gparams[0],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
+        #gparams[0] = (1 - phi) * gparams[0] + phi * gparams_lat_bias
+        ## DAN ADDED:
+        #hparams_lat_bias = theano.clone(gparams[1],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
+        #gparams[1] = (1 - phi) * gparams[1] + phi * hparams_lat_bias
+        #######################################
+        
         # end-snippet-3 start-snippet-4
         # constructs the update dictionary
         for gparam, param in zip(gparams, self.params):
@@ -383,7 +381,7 @@ class RBM(object):
 
 
 def test_rbm(learning_rate=0.1, training_epochs=15,
-             dataset='mnist.pkl.gz', batch_size=100,
+             dataset='mnist.pkl.gz', batch_size=10,
              n_chains=20, n_samples=10, output_folder='rbm_plots',
              n_hidden=500):
     """

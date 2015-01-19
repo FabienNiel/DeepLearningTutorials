@@ -15,6 +15,12 @@ from mlp import HiddenLayer
 from rbm import RBM
 from load_faces import load_faces
 
+try:
+    import PIL.Image as Image
+except ImportError:
+    import Image
+from utils import tile_raster_images
+
 # start-snippet-1
 class DBN(object):
     """Deep Belief Network
@@ -126,7 +132,7 @@ class DBN(object):
             n_in=hidden_layers_sizes[-1],
             n_out=n_outs)
         self.params.extend(self.logLayer.params)
-
+        
         # compute the cost for second phase of training, defined as the
         # negative log likelihood of the logistic regression (output) layer
         self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
@@ -270,13 +276,19 @@ class DBN(object):
             return [valid_score_i(i) for i in xrange(n_valid_batches)]
 
         # Create a function that scans the entire test set
-        def test_score():
+        def test_score():            
             return [test_score_i(i) for i in xrange(n_test_batches)]
 
         return train_fn, valid_score, test_score
+    
+    def predict_fn(self, train_set_x):
+        self.result = theano.function(
+        inputs=[self.x],
+        outputs=[self.logLayer.p_y_given_x])
+        
+        return self.result(train_set_x)
 
-
-def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
+def test_DBN(finetune_lr=0.1, pretraining_epochs=500,
              pretrain_lr=0.01, k=1, training_epochs=1000,
              dataset='mnist.pkl.gz', batch_size=10):
     """
@@ -300,9 +312,10 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
     :param batch_size: the size of a minibatch
     """
 
-    #datasets = load_data(dataset)
-    dataset = '/home/thibaud/Research/DeepLearningTutorials/data/24x24_10_Europe'
-    datasets = load_faces(dataset)
+    datasets = load_data(dataset)
+    #dataset = '/home/thibaud/Research/DeepLearningTutorials/data/24x24_10_Europe'
+    dataset = '/Users/dmcduff/Documents/Research/Deep Learning/DeepLearningTutorials/data/faces_small'
+    #datasets, test_set = load_faces(dataset)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
@@ -315,10 +328,12 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
     numpy_rng = numpy.random.RandomState(123)
     print '... building the model'
     # construct the Deep Belief Network
-    dbn = DBN(numpy_rng=numpy_rng, n_ins=24 * 24,
-              hidden_layers_sizes=[10000, 1000, 2000],
+    dbn = DBN(numpy_rng=numpy_rng, n_ins=28 * 28,
+              hidden_layers_sizes=[1000, 1000, 2000],
               n_outs=10)
-
+    ### LOOK ABOVE: n_outs=2 for smile vs. no smile!  or 10 for digits!
+    #pred_fn = dbn.predict_fn()
+    
     # start-snippet-2
     #########################
     # PRETRAINING THE MODEL #
@@ -341,6 +356,20 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
                                             lr=pretrain_lr))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
+            
+            ## DAN ADDED: Construct image from the weight matrix
+            #print (len(dbn.sigmoid_layers[0].W.get_value(borrow=True)[1,:]))
+            if (epoch) % 1 == 0 and i==0:
+                image = Image.fromarray(
+                    tile_raster_images(
+                        X=dbn.sigmoid_layers[0].W.get_value(borrow=True).T,
+                        #X=dbm.W.get_value(borrow=True).T,
+                        img_shape=(28, 28),
+                        tile_shape=(10, 10),
+                        tile_spacing=(1, 1)
+                    )
+                )
+                image.save('dbn_plots_small2/DBN_filters_at_epoch_%i.png' % epoch)
 
     end_time = time.clock()
     # end-snippet-2
@@ -438,7 +467,13 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=20,
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time)
                                               / 60.))
-
+    
+    test_input = identify_face = numpy.zeros((1,784), dtype=numpy.float32)
+    dat = test_set[0]
+    predicted_label = dbn.predict_fn(dat.astype(numpy.float32, copy=False))
+    print predicted_label
+    print test_set[1]
+    
 
 if __name__ == '__main__':
     test_DBN()
