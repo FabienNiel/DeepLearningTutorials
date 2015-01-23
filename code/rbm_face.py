@@ -152,15 +152,12 @@ class RBM(object):
         # the visibles
         pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
 
-
-	##################################################################
-	## Sparsity: #####################################################
-	##################################################################
+        ##################################################################
+	    ## Sparsity: #####################################################
+	    ##################################################################
 	rank_0 = ((h1_mean.argsort(axis=0)).argsort(axis=0).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[0].astype(theano.config.floatX)
-
-	rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
-
-	h1_mean = (1.-0.9)*(rank_0**((1./0.99)-1.))+0.9*(rank_1**((1./0.99)-1.))
+        rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
+        h1_mean = (1.-0.9)*(rank_0**((1./0.99)-1.))+0.9*(rank_1**((1./0.99)-1.))
 
 
         # get a sample of the hiddens given their activation

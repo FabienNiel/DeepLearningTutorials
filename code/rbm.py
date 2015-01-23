@@ -156,7 +156,7 @@ class RBM(object):
 
         rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
 
-        h1_mean = (1.-0.5)*(rank_0**((1./0.03)-1.))+0.5*(rank_1**((1./0.03)-1.))
+        h1_mean = (1.-0.5)*(rank_0**((1./0.05)-1.))+0.5*(rank_1**((1./0.05)-1.))
 
         #pre_sigmoid_h1_bin = T.log(h1_mean) - T.log(1. - h1_mean)
         #pre_sigmoid_h1 = pre_sigmoid_h1_bin 
@@ -279,14 +279,14 @@ class RBM(object):
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
 
         ## DAN ADDED:#########################
-        #pre_sigmoid_h1_bin = T.log(ph_mean) - T.log(1. - ph_mean)
+        pre_sigmoid_h1_bin = T.log(ph_mean) - T.log(1. - ph_mean)
         # get_gweights_up
-        #phi = 0.2
-        #gparams_lat_bias = theano.clone(gparams[0],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
-        #gparams[0] = (1 - phi) * gparams[0] + phi * gparams_lat_bias
+        phi = 0.2
+        gparams_lat_bias = theano.clone(gparams[0],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
+        gparams[0] = (1 - phi) * gparams[0] + phi * gparams_lat_bias
         ## DAN ADDED:
-        #hparams_lat_bias = theano.clone(gparams[1],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
-        #gparams[1] = (1 - phi) * gparams[1] + phi * hparams_lat_bias
+        hparams_lat_bias = theano.clone(gparams[1],replace={pre_sigmoid_ph:pre_sigmoid_h1_bin})
+        gparams[1] = (1 - phi) * gparams[1] + phi * hparams_lat_bias
         #######################################
         
         # end-snippet-3 start-snippet-4
@@ -381,7 +381,7 @@ class RBM(object):
 
 
 def test_rbm(learning_rate=0.1, training_epochs=15,
-             dataset='mnist.pkl.gz', batch_size=10,
+             dataset='mnist.pkl.gz', batch_size=50,
              n_chains=20, n_samples=10, output_folder='rbm_plots',
              n_hidden=500):
     """
