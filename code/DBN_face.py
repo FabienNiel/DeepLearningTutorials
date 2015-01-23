@@ -327,7 +327,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=3,
     #datasets = load_data(dataset)
     #dataset = '/home/thibaud/Research/DeepLearningTutorials/data/24x24_10_Europe'
 
-    list_of_datasets =
+    #list_of_datasets =
 
     datasets, test_set = load_faces(data_dir,image_dim)
 
