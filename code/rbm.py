@@ -151,12 +151,16 @@ class RBM(object):
         # the visibles
         pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
 
+
+        # LARGER mu IS MORE SPARSE.
+        mu = 0.000001 # mu = 0.01 is probably too small.
+        # LOOKED AT THE CODE HERE: http://lrn2cre8.ofai.at/lrn2/doc/_modules/lrn2/models/srbm_goh.html#SRBM_Goh
         ## DAN ADDED:#########################
         rank_0 = ((h1_mean.argsort(axis=0)).argsort(axis=0).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[0].astype(theano.config.floatX)
 
         rank_1 = ((h1_mean.argsort(axis=1)).argsort(axis=1).astype(theano.config.floatX) + 1.)/T.shape(h1_mean)[1].astype(theano.config.floatX)
 
-        h1_mean = (1.-0.5)*(rank_0**((1./0.05)-1.))+0.5*(rank_1**((1./0.05)-1.))
+        h1_mean = (1.-0.5)*(rank_0**((1./mu)-1.))+0.5*(rank_1**((1./mu)-1.))
 
         #pre_sigmoid_h1_bin = T.log(h1_mean) - T.log(1. - h1_mean)
         #pre_sigmoid_h1 = pre_sigmoid_h1_bin 

@@ -16,6 +16,8 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 import pandas
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 def logistic_transform(A, mu, sigma):
     A[numpy.where(A == 0)] = 0.1
@@ -63,14 +65,21 @@ def import_data(label, data_dir, image_dim):
             #if neutral.iloc[0]:
             if test_target>=-1:
                 test_image = numpy.array(scipy.misc.imread(f))
+
                 if (len(test_image.flatten())!=(image_dim*image_dim)):
                     continue
                 #for i, row in enumerate(test_targets.iloc[0].values):
                 #    print i + str(test_targets.iloc[0][i])
 
+                #test_image2 = test_image.astype(float)
+                #temp = logistic_transform(test_image2.flatten(), 140, 0.05)
+                #plt.imshow(temp.reshape(image_dim,image_dim), cmap = cm.Greys_r)
+                #plt.show()
+                #plt.show(block=False)
+
                 if test_target > 50:
                         test_image2 = test_image.astype(float)
-                        temp = logistic_transform(test_image2.flatten(), 120, 0.1)
+                        temp = logistic_transform(test_image2.flatten(), 140, 0.05)
                         if numpy.isnan(temp).any():
                             print "NaN found :("
                             continue
@@ -79,7 +88,7 @@ def import_data(label, data_dir, image_dim):
                             target = numpy.append(target, [1], axis=0)
                 elif test_target == 0:
                         test_image2 = test_image.astype(float)
-                        temp = logistic_transform(test_image2.flatten(), 120, 0.1)
+                        temp = logistic_transform(test_image2.flatten(), 140, 0.05)
                         if numpy.isnan(temp).any():
                             print "NaN found :("
                             continue
@@ -88,7 +97,7 @@ def import_data(label, data_dir, image_dim):
                             target = numpy.append(target, [0], axis=0)
                 elif test_target == -1:
                         test_image2 = test_image.astype(float)
-                        temp = logistic_transform(test_image2.flatten(), 120, 0.1)
+                        temp = logistic_transform(test_image2.flatten(), 140, 0.05)
                         if numpy.isnan(temp).any():
                             print "NaN found :("
                             continue

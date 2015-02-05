@@ -342,7 +342,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=3,
     if not os.path.isdir(output_dir+'/dbn_plots'):
             os.makedirs(output_dir+'/dbn_plots')
     
-    # compute number of minibatches for training, validation and testing
+    # compute number of minibatches for pretraining:
     n_train_batches = pre_train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # numpy random generator
@@ -408,6 +408,9 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=3,
     ########################
     # FINETUNING THE MODEL #
     ########################
+
+    # compute number of minibatches for training, validation and testing:
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # get the training, validation and testing function for the model
     print '... getting the finetuning functions'
